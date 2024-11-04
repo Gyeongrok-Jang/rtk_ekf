@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+	
+        <param name="robot_description" command="$(find xacro)/xacro '$(find hunter_description)/urdf/hunter.xacro'" />
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+	
+
+	<!-- imu_transfer -->
+  	<!--<node pkg="imu_transfer" type="imu_transfer" name="imu_transfer" >
+    		<remap from="imu_in" to="/imu/data" />
+    		<remap from="imu_out" to="/imu_data" />
+  	</node> -->
+
+	<!-- robot_pose_ekf -->
+	<node pkg="robot_pose_ekf" name="robot_pose_ekf" type="robot_pose_ekf" output="screen">
+        	<param name="output_frame" value="odom" />
+        	<param name="base_footprint_frame" value="base_link"/>
+		<param name="freq" value="60.0"/>
+    		<param name="sensor_timeout" value="1.0"/>
+		<param name="odom_used" value="true"/>
+    		<param name="imu_used" value="true"/>
+    		<param name="vo_used" value="false"/>
+    		<param name="debug" value="false"/>
+    		<param name="self_diagnose" value="false"/>
+        	<remap from="imu_data" to="/imu/data" />
+    	</node>
+
+
+
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hunter_description)/rviz/model_display.rviz" />
+</launch>

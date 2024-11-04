@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+  
+  <rosparam command="load" file="$(find husky_gps_nav)/config/gps_localization/ekf_local.yaml" />
+
+ 
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true"/>
+
+
+
+</launch>

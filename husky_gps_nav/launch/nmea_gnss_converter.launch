@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+
+<launch>
+    <node name="gnss_nmea_converter" pkg="husky_gps_nav/src" type="nmea_gnss_converter" output="screen" />
+</launch>

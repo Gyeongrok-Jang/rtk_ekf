@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<launch>
+
+
+
+
+	<!-- <include file="$(find hunter_base)/launch/hunter_base.launch"/> -->
+	<!--include file="$(find odom)/launch/odom.launch"/-->
+  <!-- robot_pose_ekf -->
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_with_gnss">
+     <rosparam command = "load" file ="$(find robot_localization)/params/ekf_localization_with_gnss.yaml"/>
+  </node>	
+
+  <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" clear_params="true">
+    <rosparam command="load" file="$(find robot_localization)/params/navsat_transform.yaml" />
+      <!--remap from="imu/data" to=""/>
+      <remap from="odometry/filtered" to=""/-->
+      <remap from="gps/fix" to="/gnss"/>
+	</node>
+	
+    <!-- map file -->
+	<arg name="map_file" default="$(find hunter_navigation)/maps/map2.yaml"/>
+    <!-- map server -->
+  	<node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+	<!-- <param name="robot_description" command="$(find xacro)/xacro '$(find hunter_description)/urdf/hunter.xacro'" />
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> -->
+
+<!-- TOPIC TRANSFORM -->
+
+	<node pkg="amcl" type="amcl" name="amcl" output="screen">
+	<remap from="/scan" to="/scan"/>
+        <rosparam file="$(find hunter_navigation)/param/amcl_params_diff.yaml" command="load" />
+	    	<param name="initial_pose_x"            value="0"/>
+		<param name="initial_pose_y"            value="0"/>
+		<param name="initial_pose_a"            value="0"/>
+
+	</node>
+
+    <!--  ************** Navigation ***************  -->
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <remap from="odom" to="odometry/filtered"/>
+  	  	<rosparam file="$(find hunter_navigation)/param/ackerman/costmap_common_params.yaml" command="load" ns="global_costmap" />
+  	 	<rosparam file="$(find hunter_navigation)/param/ackerman/costmap_common_params.yaml" command="load" ns="local_costmap" />
+  		<rosparam file="$(find hunter_navigation)/param/ackerman/local_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find hunter_navigation)/param/ackerman/global_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find hunter_navigation)/param/ackerman/teb_local_planner_params.yaml" command="load" />
+
+		<param name="base_global_planner" value="global_planner/GlobalPlanner" />
+		<param name="planner_frequency" value="2.0" />
+		<param name="planner_patience" value="2.0" />
+		<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+		
+		<param name="controller_frequency" value="5.0" />
+		<param name="controller_patience" value="5.0" />
+        <param name="clearing_rotation_allowed" value="false" />
+	</node>
+
+	<!--  **************** Visualization ****************  -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find hunter_navigation)/rviz/navigation_ackerman.rviz"/>
+	<!--<node pkg="tf" type="static_transform_publisher" name="base_link_to_cloud" args="0 0 0 0 0 0 /map /cloud 0" />-->
+
+
+</launch>
+

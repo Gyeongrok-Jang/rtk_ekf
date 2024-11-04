@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<launch>
+	<include file="$(find odom)/launch/odom.launch"/>
+
+	<!--<remap from="/scan" to="/scan"/>-->
+
+	<arg name="map_file" default="$(find hunter_navigation)/maps/map.yaml"/>
+  	<node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+	<param name="robot_description" command="$(find xacro)/xacro '$(find hunter_description)/urdf/hunter.xacro'" />
+        <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+<!-- TOPIC TRANSFORM -->
+
+	<node pkg="amcl" type="amcl" name="amcl" output="screen">
+        <rosparam file="$(find hunter_navigation)/param/amcl_params_diff.yaml" command="load" />
+	    <param name="initial_pose_x"            value="0"/>
+		<param name="initial_pose_y"            value="0"/>
+		<param name="initial_pose_a"            value="0"/>
+
+	</node>
+
+    <!--  ************** Navigation ***************  -->
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+	<!--<remap from="/cmd_vel" to="ackermann_steering_controller/cmd_vel"/>-->
+  	  	<rosparam file="$(find hunter_navigation)/param/ackerman/costmap_common_params.yaml" command="load" ns="global_costmap" />
+  	 	<rosparam file="$(find hunter_navigation)/param/ackerman/costmap_common_params.yaml" command="load" ns="local_costmap" />
+  		<rosparam file="$(find hunter_navigation)/param/ackerman/local_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find hunter_navigation)/param/ackerman/global_costmap_params.yaml" command="load" />
+  		<rosparam file="$(find hunter_navigation)/param/ackerman/teb_local_planner_params.yaml" command="load" />
+		<!-- <rosparam file="$(find hunter_navigation)/param/diff/planner.yaml" command="load" /> -->
+
+		<param name="base_global_planner" value="global_planner/GlobalPlanner" />
+		<param name="planner_frequency" value="5.0" />
+		<param name="planner_patience" value="5.0" />
+		<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+		<!-- <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" /> -->
+		<param name="controller_frequency" value="5.0" />
+		<param name="controller_patience" value="5.0" />
+        <param name="clearing_rotation_allowed" value="true" /> <!-- Our carlike robot is not able to rotate in place -->
+	</node>
+
+	<!--  **************** Visualization ****************  -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find hunter_navigation)/rviz/navigation_ackerman.rviz"/>
+
+</launch>
+
